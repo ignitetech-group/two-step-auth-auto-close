@@ -2,6 +2,8 @@
 
 Browser extension version `0.5` for Chrome/Edge.
 
+Available on the [Chrome Web Store](https://chromewebstore.google.com/detail/two-step-auth-auto-close/kkeghgkmjniokodcklbhbmdnemlnnfeo).
+
 It automatically closes successful auth tabs for:
 
 - `http://keriovpn.devfactory.local/*`
@@ -15,7 +17,11 @@ The extension will not close the auth tab if it is the last remaining tab across
 
 The background worker also scans existing matching tabs after startup and periodically, which helps clean up auth tabs that were opened while the laptop or browser was suspended.
 
-## Install Unpacked
+## Install From the Chrome Web Store
+
+Install from the [Chrome Web Store listing](https://chromewebstore.google.com/detail/two-step-auth-auto-close/kkeghgkmjniokodcklbhbmdnemlnnfeo). This is the recommended path — Chrome and Edge will keep the extension up to date automatically.
+
+## Install Unpacked (for development)
 
 1. Clone this repository:
    ```sh
