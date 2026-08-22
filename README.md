@@ -1,17 +1,16 @@
 # Two-step Auth Auto-Close
 
-Browser extension version `0.5` for Chrome/Edge.
+Browser extension version `0.6` for Chrome/Edge.
 
 Available on the [Chrome Web Store](https://chromewebstore.google.com/detail/two-step-auth-auto-close/kkeghgkmjniokodcklbhbmdnemlnnfeo).
 
-It automatically closes successful auth tabs for:
+It automatically closes successful HTTP and HTTPS auth tabs when any of these match:
 
-- `http://keriovpn.devfactory.local/*`
-- `http://10.212.255.245:4080/*`
-- `http://localhost:<any-port>/*callback*`
-- `http://127.0.0.1:<any-port>/*callback*`
+- Hostname contains `vpn` or `local` (for example `keriovpn.companyname.local` or `localhost`)
+- Host is a private/loopback IPv4 address (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`, `127.0.0.0/8`)
+- Path contains `nonauth`, `saml`, `sso`, `login`, `logout`, `oauth`, or `callback` (for example `/nonauth/totpVerify.cs` or `/+CSCOE+/saml_ac_login.html`)
 
-AWS/local callback pages close only when the visible page text includes `You can close` or `You may close`, and a success marker such as `successful`, `Request approved`, or `has been given requested permissions`.
+Matching pages close when they show Kerio's `#customMessage` success state, or when the visible page text includes `You can close`, `You may close`, or `You may now close`, and a completion marker such as `successful`, `successfully authenticated`, `You are disconnected`, `Request approved`, or `has been given requested permissions`. Detection also watches `.log-success` nodes and keeps a MutationObserver running so messages injected by JavaScript several seconds after load still close the tab.
 
 The extension will not close the auth tab if it is the last remaining tab across the browser session. If multiple auth tabs are opened at once, it closes them sequentially and leaves one tab open only when closing all of them would exit the browser.
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6
+
+- Added Cisco Secure Client VPN success/disconnect pages: close tabs that show `You have successfully authenticated. You may now close this browser tab.` or `You are disconnected. You may close this browser tab.`, including `.log-success` markup injected by JavaScript after the page has already loaded.
+- Watch HTTP and HTTPS tabs when the hostname contains `vpn` or `local`, the host is a private/loopback IPv4 address (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`, `127.0.0.0/8`), or the path contains `nonauth`, `saml`, `sso`, `login`, `logout`, `oauth`, or `callback`.
+- Keep a MutationObserver on matching tabs so late-rendered success copy is still detected after the short polling window ends.
+
 ## 0.5
 
 - Migrated close handling into the background worker queue so simultaneous auth tabs close sequentially.
@@ -17,8 +23,8 @@
 
 - Added support for AWS and local OAuth callback pages, including `10.212.255.245:4080`, `localhost`, and `127.0.0.1` callback URLs.
 - Added success-page detection for pages that say `You can close` or `You may close` with success markers such as `successful`, `Request approved`, or `has been given requested permissions`.
-- Prior versions were DevFactory Kerio VPN only.
+- Prior versions were Kerio VPN only.
 
 ## 0.2
 
-- Tampermonkey userscript for auto-closing successful DevFactory Kerio VPN two-step auth windows.
+- Tampermonkey userscript for auto-closing successful Kerio VPN two-step auth windows.

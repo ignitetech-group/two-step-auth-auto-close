@@ -1,10 +1,22 @@
 (function() {
 	'use strict';
 
+	if (window.__twoStepAuthAutoCloseLoaded) {
+		return;
+	}
+
+	if (!isWatchedAuthUrl(window.location.href)) {
+		return;
+	}
+
+	window.__twoStepAuthAutoCloseLoaded = true;
+
 	var closeMessage = { type: 'close-auth-success-tab' };
-	var checkCount = 0;
 	var closeRequested = false;
 	var maxChecks = 20;
+	var observer = null;
+	var intervalId = null;
+	var debounceId = null;
 
 	function closeWindow() {
 		if (closeRequested) {
@@ -12,16 +24,13 @@
 		}
 
 		closeRequested = true;
+		stopWatching();
 		window.setTimeout(function() {
 			chrome.runtime.sendMessage(closeMessage);
 		}, 250);
 	}
 
 	function isKerioSuccessPage() {
-		if (window.location.hostname !== 'keriovpn.devfactory.local') {
-			return false;
-		}
-
 		var el = document.getElementById('customMessage');
 		var inp = document.getElementsByTagName('input');
 		var frm = document.getElementsByTagName('form');
@@ -29,25 +38,37 @@
 		return (el !== null) && (inp.length == 0) && (frm.length == 0);
 	}
 
-	function isAllowedAuthCallbackUrl() {
-		var hostname = window.location.hostname;
-		var pathname = window.location.pathname.toLowerCase();
-
-		if (hostname === '10.212.255.245') {
-			return window.location.port === '4080';
-		}
-
-		return (
-			(hostname === 'localhost' || hostname === '127.0.0.1') &&
-			pathname.indexOf('callback') !== -1
-		);
-	}
-
-	function getPageText() {
-		return (document.body && document.body.innerText ? document.body.innerText : '')
+	function normalizeText(value) {
+		return (value || '')
 			.replace(/\s+/g, ' ')
 			.trim()
 			.toLowerCase();
+	}
+
+	function getPageText() {
+		return normalizeText(document.body && document.body.innerText ? document.body.innerText : '');
+	}
+
+	function hasCloseTabPhrase(text) {
+		return (
+			text.indexOf('you can close') !== -1 ||
+			text.indexOf('you may close') !== -1 ||
+			text.indexOf('you can now close') !== -1 ||
+			text.indexOf('you may now close') !== -1
+		);
+	}
+
+	function hasAuthCompleteMarker(text) {
+		return (
+			text.indexOf('successful') !== -1 ||
+			text.indexOf('request approved') !== -1 ||
+			text.indexOf('has been given requested permissions') !== -1 ||
+			text.indexOf('you are disconnected') !== -1
+		);
+	}
+
+	function textLooksLikeAuthComplete(text) {
+		return hasCloseTabPhrase(text) && hasAuthCompleteMarker(text);
 	}
 
 	function isSuccessfulClosePage() {
@@ -55,39 +76,87 @@
 			return false;
 		}
 
-		var text = getPageText();
-
-		if (text.indexOf('you can close') === -1 && text.indexOf('you may close') === -1) {
-			return false;
-		}
-
-		return (
-			text.indexOf('successful') !== -1 ||
-			text.indexOf('request approved') !== -1 ||
-			text.indexOf('has been given requested permissions') !== -1
-		);
-	}
-
-	function shouldCloseWindow() {
-		return isKerioSuccessPage() || (isAllowedAuthCallbackUrl() && isSuccessfulClosePage());
-	}
-
-	function checkAndClose() {
-		checkCount += 1;
-
-		if (shouldCloseWindow()) {
-			closeWindow();
+		if (textLooksLikeAuthComplete(getPageText())) {
 			return true;
 		}
 
-		return checkCount >= maxChecks;
+		var els = document.getElementsByClassName('log-success');
+		for (var i = 0; i < els.length; i++) {
+			if (textLooksLikeAuthComplete(normalizeText(els[i].innerText))) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
-	if (!checkAndClose()) {
-		var intervalId = window.setInterval(function() {
-			if (checkAndClose()) {
-				window.clearInterval(intervalId);
+	function shouldCloseWindow() {
+		return isKerioSuccessPage() || isSuccessfulClosePage();
+	}
+
+	function stopWatching() {
+		if (observer) {
+			observer.disconnect();
+			observer = null;
+		}
+
+		if (intervalId !== null) {
+			window.clearInterval(intervalId);
+			intervalId = null;
+		}
+
+		if (debounceId !== null) {
+			window.clearTimeout(debounceId);
+			debounceId = null;
+		}
+	}
+
+	function tryClose() {
+		if (!shouldCloseWindow()) {
+			return false;
+		}
+
+		closeWindow();
+		return true;
+	}
+
+	function scheduleCheck() {
+		if (closeRequested || debounceId !== null) {
+			return;
+		}
+
+		debounceId = window.setTimeout(function() {
+			debounceId = null;
+			tryClose();
+		}, 100);
+	}
+
+	function startWatching() {
+		if (tryClose()) {
+			return;
+		}
+
+		if (document.documentElement) {
+			observer = new MutationObserver(scheduleCheck);
+			observer.observe(document.documentElement, {
+				childList: true,
+				subtree: true,
+				characterData: true,
+			});
+		}
+
+		var checkCount = 0;
+		intervalId = window.setInterval(function() {
+			checkCount += 1;
+
+			if (tryClose() || checkCount >= maxChecks) {
+				if (intervalId !== null) {
+					window.clearInterval(intervalId);
+					intervalId = null;
+				}
 			}
 		}, 500);
 	}
+
+	startWatching();
 })();
