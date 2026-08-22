@@ -1,42 +1,14 @@
+importScripts('url-match.js');
+
 var cleanupAlarmName = 'scan-auth-success-tabs';
 var closeQueue = new Set();
 var isProcessingCloseQueue = false;
-
-function isWatchedUrl(urlText) {
-	if (!urlText) {
-		return false;
-	}
-
-	var url;
-	try {
-		url = new URL(urlText);
-	} catch (error) {
-		return false;
-	}
-
-	if (url.protocol !== 'http:') {
-		return false;
-	}
-
-	if (url.hostname === 'keriovpn.devfactory.local') {
-		return true;
-	}
-
-	if (url.hostname === '10.212.255.245') {
-		return url.port === '4080';
-	}
-
-	return (
-		(url.hostname === 'localhost' || url.hostname === '127.0.0.1') &&
-		url.pathname.toLowerCase().indexOf('callback') !== -1
-	);
-}
 
 function injectChecker(tabId) {
 	chrome.scripting.executeScript(
 		{
 			target: { tabId: tabId },
-			files: ['content.js'],
+			files: ['url-match.js', 'content.js'],
 		},
 		function() {
 			chrome.runtime.lastError;
@@ -47,7 +19,7 @@ function injectChecker(tabId) {
 function scanOpenTabs() {
 	chrome.tabs.query({}, function(tabs) {
 		tabs.forEach(function(tab) {
-			if (typeof tab.id === 'number' && isWatchedUrl(tab.url)) {
+			if (typeof tab.id === 'number' && isWatchedAuthUrl(tab.url)) {
 				injectChecker(tab.id);
 			}
 		});
@@ -118,7 +90,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 });
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-	if (changeInfo.status === 'complete' && isWatchedUrl(tab.url)) {
+	if (changeInfo.status === 'complete' && isWatchedAuthUrl(tab.url)) {
 		injectChecker(tabId);
 	}
 });
