@@ -47,7 +47,7 @@ function isWatchedAuthUrl(urlText) {
 		return true;
 	}
 
-	var pathMarkers = ['nonauth', 'saml', 'sso', 'login', 'logout', 'oauth', 'callback'];
+	var pathMarkers = ['nonauth', 'saml', 'sso', 'login', 'logout', 'oauth', 'callback', 'auth_success'];
 	for (var i = 0; i < pathMarkers.length; i++) {
 		if (pathname.indexOf(pathMarkers[i]) !== -1) {
 			return true;

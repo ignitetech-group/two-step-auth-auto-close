@@ -1,7 +1,7 @@
 {
 	"manifest_version": 3,
 	"name": "Two-step Auth Auto-Close",
-	"version": "0.6",
+	"version": "0.6.1",
 	"description": "Automatically closes intranet VPN and local auth callback tabs after successful authentication.",
 	"icons": {
 		"16": "icons/icon-16.png",
