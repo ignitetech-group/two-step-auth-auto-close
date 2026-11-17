@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.1
+
+- Added Azure CLI `az login` success pages: close `localhost` callback tabs that show `You have logged into Microsoft Azure! You can close this window`, before the page redirects to the Azure CLI documentation.
+- Added mcporter CLI OAuth success pages: close loopback `/callback` tabs that show `Authorization successful` and `You can return to the CLI.`
+- Added GitHub device activation success pages (for example `gh auth login` or Copilot device login): close `/login/device/success` tabs that show `Congratulations, you're all set! Your device is now connected.`, on github.com or GitHub Enterprise hosts.
+- Added gcloud CLI `gcloud auth login` success pages: watch paths containing `auth_success` so `docs.cloud.google.com/sdk/auth_success` closes when it shows `The authentication flow has completed successfully. You may close this window`.
+- Fixed the `successful` completion marker matching inside `unsuccessful`, so failure pages that also say `You can close` or `You can return to the CLI` stay open.
+
 ## 0.6
 
 - Added Cisco Secure Client VPN success/disconnect pages: close tabs that show `You have successfully authenticated. You may now close this browser tab.` or `You are disconnected. You may close this browser tab.`, including `.log-success` markup injected by JavaScript after the page has already loaded.

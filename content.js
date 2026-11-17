@@ -54,16 +54,18 @@
 			text.indexOf('you can close') !== -1 ||
 			text.indexOf('you may close') !== -1 ||
 			text.indexOf('you can now close') !== -1 ||
-			text.indexOf('you may now close') !== -1
+			text.indexOf('you may now close') !== -1 ||
+			text.indexOf('you can return to the cli') !== -1
 		);
 	}
 
 	function hasAuthCompleteMarker(text) {
 		return (
-			text.indexOf('successful') !== -1 ||
+			/\bsuccessful/.test(text) ||
 			text.indexOf('request approved') !== -1 ||
 			text.indexOf('has been given requested permissions') !== -1 ||
-			text.indexOf('you are disconnected') !== -1
+			text.indexOf('you are disconnected') !== -1 ||
+			text.indexOf('you have logged into') !== -1
 		);
 	}
 
@@ -90,8 +92,15 @@
 		return false;
 	}
 
+	function isGitHubDeviceSuccessPage() {
+		return (
+			window.location.pathname === '/login/device/success' &&
+			getPageText().indexOf('your device is now connected') !== -1
+		);
+	}
+
 	function shouldCloseWindow() {
-		return isKerioSuccessPage() || isSuccessfulClosePage();
+		return isKerioSuccessPage() || isGitHubDeviceSuccessPage() || isSuccessfulClosePage();
 	}
 
 	function stopWatching() {
