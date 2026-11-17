@@ -61,7 +61,7 @@
 
 	function hasAuthCompleteMarker(text) {
 		return (
-			text.indexOf('successful') !== -1 ||
+			/\bsuccessful/.test(text) ||
 			text.indexOf('request approved') !== -1 ||
 			text.indexOf('has been given requested permissions') !== -1 ||
 			text.indexOf('you are disconnected') !== -1 ||
